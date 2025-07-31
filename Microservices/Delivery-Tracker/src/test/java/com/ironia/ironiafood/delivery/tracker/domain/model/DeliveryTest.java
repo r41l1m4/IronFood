@@ -1,23 +1,33 @@
 package com.ironia.ironiafood.delivery.tracker.domain.model;
 
 import com.ironia.ironiafood.delivery.tracker.domain.exception.DomainException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class DeliveryTest {
 
+    private Delivery deliveryDraft;
+
+    @BeforeEach
+    void draftWith2ItemsSetUp() {
+        this.deliveryDraft = Delivery.draft();
+        this.deliveryDraft.editPreflightDetails(createdValidPreflightDetails());
+
+        this.deliveryDraft.addItem("Patch cord", 1);
+        this.deliveryDraft.addItem("RJ-45 extensor", 1);
+    }
+
     @Test
     public void shouldChangeToPlaced() {
-        Delivery deliveryDraft = Delivery.draft();
+        this.deliveryDraft.place();
 
-        deliveryDraft.editPreflightDetails(createdValidPreflightDetails());
-        deliveryDraft.place();
-
-        assertEquals(DeliveryStatus.WAITING_FOR_COURIER, deliveryDraft.getStatus());
+        assertEquals(DeliveryStatus.WAITING_FOR_COURIER, this.deliveryDraft.getStatus());
         assertNotNull(deliveryDraft.getPlacedAt());
     }
 
@@ -29,6 +39,46 @@ class DeliveryTest {
 
         assertEquals(DeliveryStatus.DRAFT, deliveryDraft.getStatus());
         assertNull(deliveryDraft.getPlacedAt());
+    }
+
+    @Test
+    void shouldHaveTwoItems() {
+        assertEquals(2, deliveryDraft.getTotalItems());
+    }
+
+    @Test
+    void shouldRemoveOneItem() {
+        UUID nicId = this.deliveryDraft.addItem("Gigabit NIC", 1);
+
+        assertEquals(3, deliveryDraft.getTotalItems());
+
+        this.deliveryDraft.removeItem(nicId);
+
+        assertEquals(2, deliveryDraft.getTotalItems());
+    }
+
+    @Test
+    void shouldRemoveAllItems() {
+        this.deliveryDraft.removeItems();
+
+        assertEquals(0, deliveryDraft.getTotalItems());
+    }
+
+    @Test
+    void shouldchangeItemQuantity() {
+        UUID nicId = this.deliveryDraft.addItem("Gigabit NIC", 1);
+        Integer nicQuantity = this.deliveryDraft.getItems().stream()
+                        .filter(item -> item.getId().equals(nicId))
+                        .mapToInt(Item::getQuantity).sum();
+
+        assertEquals(1, nicQuantity);
+
+        this.deliveryDraft.changeItemQuantity(nicId, 3);
+        nicQuantity = this.deliveryDraft.getItems().stream()
+                .filter(item -> item.getId().equals(nicId))
+                .mapToInt(Item::getQuantity).sum();
+
+        assertEquals(3, nicQuantity);
     }
 
     private Delivery.PreflightDetails createdValidPreflightDetails() {
