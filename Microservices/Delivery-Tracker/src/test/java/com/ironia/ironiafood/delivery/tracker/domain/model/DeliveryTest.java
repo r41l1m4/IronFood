@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DeliveryTest {
 
     private Delivery deliveryDraft;
+    private final UUID courierId = UUID.randomUUID();
 
     @BeforeEach
     void draftWith2ItemsSetUp() {
@@ -79,6 +80,37 @@ class DeliveryTest {
                 .mapToInt(Item::getQuantity).sum();
 
         assertEquals(3, nicQuantity);
+    }
+
+    @Test
+    void shouldChangeStatusToInTransitWhenSetToPickUp() {
+        this.deliveryDraft.place();
+
+        assertEquals(DeliveryStatus.WAITING_FOR_COURIER, this.deliveryDraft.getStatus());
+
+        this.deliveryDraft.pickUp(this.courierId);
+
+        assertEquals(DeliveryStatus.IN_TRANSIT, this.deliveryDraft.getStatus());
+    }
+
+    @Test
+    void shouldChangeStatusToDeliveredWhenMarkedAsDelivered() {
+        this.deliveryDraft.place();
+        this.deliveryDraft.pickUp(this.courierId);
+
+        assertEquals(DeliveryStatus.IN_TRANSIT, this.deliveryDraft.getStatus());
+
+        this.deliveryDraft.markAsDelivered();
+
+        assertEquals(DeliveryStatus.DELIVERED, this.deliveryDraft.getStatus());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenEditPreflighDetailsOfNonDraftDelivery() {
+        this.deliveryDraft.place();
+
+        assertThrows(DomainException.class,
+                () -> this.deliveryDraft.editPreflightDetails(createdValidPreflightDetails()));
     }
 
     private Delivery.PreflightDetails createdValidPreflightDetails() {
