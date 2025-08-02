@@ -1,3 +1,5 @@
+api-client:
+  baseUrl: http://localhost:8081
 spring:
   application:
     name: delivery-tracker
