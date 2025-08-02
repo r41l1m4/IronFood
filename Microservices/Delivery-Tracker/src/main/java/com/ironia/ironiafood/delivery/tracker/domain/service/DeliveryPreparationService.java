@@ -5,12 +5,14 @@ import com.ironia.ironiafood.delivery.tracker.api.model.DeliveryInput;
 import com.ironia.ironiafood.delivery.tracker.domain.exception.DomainException;
 import com.ironia.ironiafood.delivery.tracker.domain.model.ContactPoint;
 import com.ironia.ironiafood.delivery.tracker.domain.model.Delivery;
+import com.ironia.ironiafood.delivery.tracker.domain.model.DeliveryEstimate;
 import com.ironia.ironiafood.delivery.tracker.domain.repository.DeliveryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -19,6 +21,8 @@ import java.util.UUID;
 public class DeliveryPreparationService {
 
     private final DeliveryRepository deliveryRepository;
+    private final DeliveryTimeEstimationService deliveryTimeEstimationService;
+    private final CourierPayoutCalculationService courierPayoutCalculationService;
 
     @Transactional
     public Delivery draft(DeliveryInput input) {
@@ -62,15 +66,15 @@ public class DeliveryPreparationService {
                 .phone(recipientInput.getPhone())
                 .build();
 
-        Duration expectedDeliveryTime = Duration.ofHours(3);
-        BigDecimal payout = new BigDecimal("10");
-        BigDecimal distanceFee = new BigDecimal("10");
+        DeliveryEstimate expectedDeliveryTime = deliveryTimeEstimationService.estimate(sender, recipient);
+        BigDecimal courierPayout = courierPayoutCalculationService.calculatePayout(expectedDeliveryTime.getDistancInKm());
+        BigDecimal distanceFee = calculateFee(expectedDeliveryTime.getDistancInKm());
 
         Delivery.PreflightDetails preflightDetails = Delivery.PreflightDetails.builder()
                 .recipient(recipient)
                 .sender(sender)
-                .expectedDeliveryTime(expectedDeliveryTime)
-                .courierPayout(payout)
+                .expectedDeliveryTime(expectedDeliveryTime.getEstimatedTime())
+                .courierPayout(courierPayout)
                 .distanceFee(distanceFee)
                 .build();
 
@@ -78,5 +82,11 @@ public class DeliveryPreparationService {
 
         input.getItems().forEach(item -> delivery.addItem(item.getName(), item.getQuantity()));
 
+    }
+
+    private BigDecimal calculateFee(Double distancInKm) {
+        return new BigDecimal(3)
+                .multiply(new BigDecimal(distancInKm))
+                .setScale(2, RoundingMode.HALF_EVEN);
     }
 }
