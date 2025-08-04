@@ -1,5 +1,6 @@
 package com.ironia.ironfood.courier.manager.infrastructure.kafka;
 
+import com.ironia.ironfood.courier.manager.domain.service.CourierDeliveryService;
 import com.ironia.ironfood.courier.manager.infrastructure.event.DeliveryFulfilledIntegrationEvent;
 import com.ironia.ironfood.courier.manager.infrastructure.event.DeliveryPlacedIntegrationEvent;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KafkaDeliveriesMessageHandler {
 
+    private final CourierDeliveryService courierDeliveryService;
+
     @KafkaHandler(isDefault = true)
     public void defaultHandler(@Payload Object payload) {
         log.info("Default handler: {}" , payload);
@@ -23,10 +26,12 @@ public class KafkaDeliveriesMessageHandler {
     @KafkaHandler
     public void handle(@Payload DeliveryPlacedIntegrationEvent event) {
         log.info("Received: {}", event);
+        courierDeliveryService.assign(event.getDeliveryId());
     }
 
     @KafkaHandler
     public void handle(@Payload DeliveryFulfilledIntegrationEvent event) {
         log.info("Received: {}", event);
+        courierDeliveryService.fulfill((event.getDeliveryId()));
     }
 }
