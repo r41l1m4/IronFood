@@ -12,6 +12,6 @@ import java.util.UUID;
 @ToString
 public class DeliveryPickedUpEvent {
 
-    private final OffsetDateTime occuredAt;
+    private final OffsetDateTime occurredAt;
     private final UUID deliveryId;
 }

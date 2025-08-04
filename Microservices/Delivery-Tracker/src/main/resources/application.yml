@@ -1,13 +1,27 @@
 api-client:
   baseUrl: http://localhost:8081
+kafka:
+  topics:
+    delivery:
+      name: deliveries.v1.events
 spring:
   application:
     name: delivery-tracker
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
   datasource:
     url: jdbc:postgresql://localhost:5432/deliverydb
     username: postgres
     password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping:
+          delivery-placed-event:com.ironia.ironfood.delivery.tracker.domain.event.DeliveryPlacedEvent,
+          delivery-picked-up-event:com.ironia.ironfood.delivery.tracker.domain.event.DeliveryPickedUpEvent,
+          delivery-fulfilled-event:com.ironia.ironfood.delivery.tracker.domain.event.DeliveryFulfilledEvent

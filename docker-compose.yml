@@ -47,8 +47,8 @@ services:
     ports:
       - 8084:8080
     environment:
-      KAFKA_CLUESTERS_0_NAME: ironfood-kafka-cluster
-      KAFKA_CLUESTERS_0_BOOTSTRAPSERVERS: kafka:9090
+      KAFKA_CLUSTERS_0_NAME: ironfood-kafka-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9090
     networks:
       - local-network
 
