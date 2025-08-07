@@ -3,3 +3,17 @@ server:
 spring:
   application:
     name: Gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: delivery-tracker-route
+              uri: http://localhost:8080
+              predicates:
+                - Path=/api/v1/deliveries/**
+                - Method=GET,POST,PUT,DELETE,OPTIONS #optional
+            - id: courier-manager-route
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/v1/couriers/**
