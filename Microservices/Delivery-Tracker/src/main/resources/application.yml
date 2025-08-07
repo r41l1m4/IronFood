@@ -1,5 +1,5 @@
 api-client:
-  baseUrl: http://localhost:8081
+  baseUrl: http://courier-manager
 eureka:
   client:
     server-url:
