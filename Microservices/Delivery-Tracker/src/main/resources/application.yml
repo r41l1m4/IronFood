@@ -1,5 +1,12 @@
 api-client:
   baseUrl: http://localhost:8081
+eureka:
+  client:
+    server-url:
+      default-zone: http://localhost:8761/eureka/
+  instance:
+    instance-id: ${random.value}
+    prefer-ip-address: true
 kafka:
   topics:
     delivery:
