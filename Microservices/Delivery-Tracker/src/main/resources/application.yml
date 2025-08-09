@@ -11,6 +11,20 @@ kafka:
   topics:
     delivery:
       name: deliveries.v1.events
+resilience4j:
+  retry:
+    configs:
+      default:
+        maxAttempts: 2
+        waitDuration: 20ms
+      instances:
+        Retry_CourierAPIClient_payoutCalculation:
+          baseConfig: default
+          maxAttempts: 3
+          retryExceptions:
+            - org.springframework.web.client.ResourceAccessException
+          ignoreExceptions:
+            - org.springframework.web.client.HttpServerErrorException
 spring:
   application:
     name: delivery-tracker
